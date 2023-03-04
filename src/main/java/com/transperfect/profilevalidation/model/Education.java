@@ -9,6 +9,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 @Entity
@@ -22,8 +23,10 @@ public class Education {
     private Long id;
 
     @Pattern(regexp = "BACHELOR|MASTER|ASSOCIATE|DOCTORAL", flags = Pattern.Flag.CASE_INSENSITIVE, message = "The degree isn't valid")
+    @NotNull(message = "The degree isn't valid")
     private String degree;
 
     @Pattern(regexp = "COMPUTER_SCIENCE|SOFTWARE_ENGINEER|DATA_SCIENCE|FINANCE|RESEARCH_DEVELOPMENT", flags = Pattern.Flag.CASE_INSENSITIVE, message = "The speciality isn't valid")
+    @NotNull(message = "The speciality isn't valid")
     private String speciality;
 }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 public class UserProfileControlTest {
 
+    public static final String NAME_FIELD_INVALID_MESSAGE = "The name field is required and must be between 2 and 50 characters";
+    private static final  String PASSWORD_FIELD_INVALID_MESSAGE = "The password must be between 8 and 20 characters long, and must contain at least one uppercase letter, one lowercase letter, one digit, and one special character";
+    private static final String EMAIL_FIELD_INVALID_MESSAGE = "The email field is not valid email address";
     @Autowired
     private MockMvc mockMvc;
 
@@ -71,6 +75,49 @@ public class UserProfileControlTest {
         ;
     }
 
+
+    @Test
+    void shouldReturn400WhenCreateNewUserProfileWithInvalidName() throws Exception {
+        UserProfile userProfile = new UserProfile(1L, "m", "moad.rhannoumi@gmail.com", "Moad123@lm", null, null);
+        given(userProfileService.save(any(UserProfile.class))).willReturn(userProfile);
+
+
+        this.mockMvc.perform(post("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userProfile)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.name", is(NAME_FIELD_INVALID_MESSAGE)))
+        ;
+    }
+
+    @Test
+    void shouldReturn400WhenCreateNewUserProfileWithInvalidEmail() throws Exception {
+        UserProfile userProfile = new UserProfile(1L, "moad", "moad.rhannoumi", "Moad123@lm", null, null);
+        given(userProfileService.save(any(UserProfile.class))).willReturn(userProfile);
+
+
+        this.mockMvc.perform(post("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userProfile)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.email", is(EMAIL_FIELD_INVALID_MESSAGE)))
+        ;
+    }
+
+    @Test
+    void shouldReturn400WhenCreateNewUserProfileWithInvalidPassword() throws Exception {
+        UserProfile userProfile = new UserProfile(1L, "moad", "moad.rhannoumi@gmail.com", "oad123@lm", null, null);
+        given(userProfileService.save(any(UserProfile.class))).willReturn(userProfile);
+
+
+        this.mockMvc.perform(post("/api/v1/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userProfile)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.password", is(PASSWORD_FIELD_INVALID_MESSAGE)))
+        ;
+    }
+
     @Test
     void shouldUpdateUserProfile() throws Exception{
         long userId=1L;
@@ -87,6 +134,31 @@ public class UserProfileControlTest {
                 .andExpect(jsonPath("$.name",is(userProfile.getName())));
 
     }
+
+    @Test
+    void shouldReturn400WhenUpdateUserProfileWithUnfoundUserProfile() throws Exception{
+        UserProfile userProfile=new UserProfile(1L,"maod","moad.rhannoumi@gmail.com","Moad123@lm",null,null);
+        given(userProfileService.isUserProfileExist(anyLong())).willReturn(false);
+        this.mockMvc.perform(put("/api/v1/profile/{id}",anyLong())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userProfile)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldReturn400WhenUpdateUserProfileWithInvalidData() throws Exception{
+
+        given(userProfileService.isUserProfileExist(anyLong())).willReturn(true);
+
+
+        this.mockMvc.perform(put("/api/v1/profile/{id}",Long.MAX_VALUE)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UserProfile())))
+                .andExpect(status().isBadRequest());
+
+    }
+
+
 
 
 
