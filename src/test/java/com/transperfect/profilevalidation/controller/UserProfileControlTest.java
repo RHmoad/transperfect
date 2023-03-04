@@ -18,8 +18,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -71,6 +70,25 @@ public class UserProfileControlTest {
                 .andExpect(jsonPath("$.name", is(userProfile.getName())))
         ;
     }
+
+    @Test
+    void shouldUpdateUserProfile() throws Exception{
+        long userId=1L;
+        UserProfile userProfile=new UserProfile(1L,"maod","moad.rhannoumi@gmail.com","Moad123@lm",null,null);
+        given(userProfileService.isUserProfileExist(userId)).willReturn(true);
+        given(userProfileService.save(any(UserProfile.class))).willReturn(userProfile);
+
+        this.mockMvc.perform(put("/api/v1/profile/{id}",userProfile.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userProfile)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email",is(userProfile.getEmail())))
+                .andExpect(jsonPath("$.password",is(userProfile.getPassword())))
+                .andExpect(jsonPath("$.name",is(userProfile.getName())));
+
+    }
+
+
 
 
 }
